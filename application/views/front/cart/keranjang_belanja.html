@@ -1,0 +1,328 @@
+<form>
+    <table class="shop_table shop_table_responsive cart" >
+        <thead>
+            <tr>
+                <th class="product-remove">&nbsp;</th>
+                <th class="product-thumbnail">&nbsp;</th>
+                <th class="product-name">Menu</th>
+                <th class="product-price">Harga</th>
+                <th class="product-quantity">Jumlah</th>
+                <th class="product-subtotal">Sub Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {cart_content}
+            <tr class="cart_item {rowid}">
+                <td class="product-remove">
+                    <a href="#" title="Hapus Item" class="remove cart_remove_item" data-rowid="{rowid}">&times;</a>
+                </td>
+                <td class="product-thumbnail">
+                    <a href="{base}/menuorder/{seo}">
+                        <img width="180" height="180" src="{base}/img/menu_folder/thumbs/{img_src}" alt=""/>
+                    </a>
+                </td>
+                <td class="product-name" data-title="Menu">
+                    <a href="{base}/menuorder/{seo}">{name}</a>
+                </td>
+                <td class="product-price" data-title="Harga">
+                    <span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol"></span>{price_format}</span>
+                </td>
+                <td class="product-quantity" data-title="Jumlah">
+                    <div class="qty-btn">
+                        <div class="quantity">
+                            <input type="text" value="{qty}" title="Qty" class="input-text qty text" data-rowid="{rowid}"/>
+                        </div>
+                    </div>
+                </td>
+                <td class="product-subtotal" data-title="Sub Total">
+                    <span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol"></span>Rp. <span id="price_sub_format_{rowid}">{price_sub_format}</span></span>
+                </td>
+            </tr>
+            {/cart_content}
+            <tr>
+<td colspan="6" class="actions">
+    <div class="action-buttons">
+        <input type="button" class="button" id="update_cart" value="Update Order" />
+
+        <a href="javascript:void(0)"
+           id="btnKonfirmasi"
+           class="checkout-button button alt wc-forward"
+           data-url="<?=site_url('checkout');?>">
+
+           <span class="btn-text">Konfirmasi</span>
+           <span class="btn-overlay">
+               <span class="icon">✖</span> Stok Tidak Cukup
+           </span>
+        </a>
+    </div>
+</td>
+
+            </tr>
+        </tbody>
+    </table>
+</form>
+<div class="cart-collaterals">
+    <div class="cart_totals ">
+        <h2>Cart Totals</h2>
+        <table  class="shop_table shop_table_responsive">
+            <tr class="cart-subtotal">
+                <th>Total Qty</th>
+                <td data-title="Total Item">
+                    <span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">{total_qty}</span>
+                </td>
+            </tr>
+            <tr class="cart-subtotal">
+                <th>Total Waktu</th>
+                <td data-title="Total Waktu">
+                    <span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">{total_waktu} Menit</span>
+                </td>
+            </tr>
+            <tr class="cart-subtotal">
+                <th>Total</th>
+                <td data-title="Total">
+                    <span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">Rp. </span><span class="cart_total_format">{cart_total_format}</span></span>
+                </td>
+            </tr>
+        </table>
+        <div class="wc-proceed-to-checkout">
+           <!-- <a href="<?=site_url('checkout');?>" class="checkout-button button alt wc-forward">Checkout</a> -->
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+// ================= REMOVE ITEM =================
+$('.cart_remove_item').on('click', function(e){
+    e.preventDefault();
+    var rowid = $(this).data('rowid');
+
+    swal({
+        title: 'Anda Yakin ?',
+        text: 'Item ini akan di Hapus !',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya',
+        cancelButtonText: 'Batal',
+        closeOnConfirm: true
+    }, function(isConfirm) {
+        if (isConfirm){ 
+            $.ajax({
+                url: "{base}/cart/remove_item/"+rowid
+            })
+            .done(function(res) {
+                location.reload();
+            })
+            .fail(function(error) {
+                console.log(error.responseText);
+            });
+        }
+    });
+});
+
+
+// ================= UPDATE BUTTON =================
+$('#update_cart').on('click', function(e) {
+    e.preventDefault();
+    location.reload();
+});
+
+
+// ================= UPDATE QTY =================
+$('.qty').on('change keyup', function(e) {
+    e.preventDefault();
+
+    let rowid = $(this).data('rowid');
+    let qty   = $(this).val();
+
+    if(qty > 0){
+
+        $.ajax({
+            url : "{base}/cart/update_item/",
+            type: "POST",
+            data:{
+                rowid: rowid,
+                qty: qty
+            }
+        })
+        .done(function(res) {
+
+            if(res.status === false){
+                swal({
+                    title:"Info",
+                    text: res.message,
+                    type: "warning",
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+                lockKonfirmasi(true); // 🔒 KUNCI JIKA MELEBIHI STOK
+                return;
+            }
+
+            $('#price_sub_format_'+rowid).html(res.cart_content.price_sub_format);
+            $('.cart_total_format').html(res.cart_total_format);
+
+            checkStock(); // 🔥 CEK ULANG STOK SETIAP QTY BERUBAH
+        })
+        .fail(function(err){
+            console.log(err.responseText);
+        });
+
+    } else {
+        swal({
+            title:"Info",
+            text:"Jumlah harus lebih dari 0",
+            type:"warning",
+            timer:2000,
+            showConfirmButton:false
+        });
+
+        $(this).focus();
+    }
+});
+
+
+// ================= KONFIRMASI =================
+$(document).on("click", "#btnKonfirmasi", function(e){
+    e.preventDefault();
+
+    let btn = $(this);
+    let url = btn.data("url");
+
+    if(btn.prop("disabled")) return false;
+
+    $.ajax({
+        url: "<?=site_url('checkout/check_stock');?>",
+        type: "GET",
+        dataType: "json",
+        beforeSend:function(){
+            btn.text("Cek stok...");
+            btn.prop("disabled", true);
+        },
+        success:function(res){
+
+            if(res.status){
+                window.location.href = url;
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Stok Tidak Cukup",
+                    text: res.message
+                });
+
+                btn.text("Konfirmasi");
+                lockKonfirmasi(true); // 🔥 MATI TOTAL
+            }
+        },
+        error:function(){
+            Swal.fire("Error","Gagal cek stok","error");
+            btn.text("Konfirmasi");
+            btn.prop("disabled", false);
+        }
+    });
+});
+
+
+// ================= FUNCTION CEK STOK =================
+function checkStock(){
+
+    $.ajax({
+        url: "<?= site_url('checkout/check_stock'); ?>",
+        type: "GET",
+        dataType:"json",
+        success:function(res){
+
+            if(res.status === false){
+
+                lockKonfirmasi(true); // 🔒 KUNCI
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stok Tidak Cukup',
+                    text: res.message,
+                    timer: 4000,
+                    showConfirmButton: true
+                });
+
+            } else {
+                lockKonfirmasi(false); // ✅ AKTIF
+            }
+        }
+    });
+}
+
+
+// ================= CEK SAAT PAGE DIBUKA =================
+checkStock();
+
+
+// ================= LOCK BUTTON (TIDAK DIHILANGKAN) =================
+function lockKonfirmasi(lock = true){
+    if(lock){
+        $("#btnKonfirmasi")
+            .addClass("disabled")
+            .prop("disabled", true)
+            .css({
+                pointerEvents: "none",
+                opacity: 1
+            });
+    } else {
+        $("#btnKonfirmasi")
+            .removeClass("disabled")
+            .prop("disabled", false)
+            .css({
+                pointerEvents: "auto",
+                opacity: 1
+            });
+    }
+}
+
+
+</script>
+
+<style>
+.action-buttons{
+    display: flex;
+    align-items: center;
+    gap: 12px;           /* jarak antar tombol */
+    flex-wrap: wrap;     /* aman untuk mobile */
+}
+
+#btnKonfirmasi{
+    position: relative;
+    overflow: hidden;
+    border-radius: 30px;
+}
+
+
+/* Overlay palang */
+#btnKonfirmasi .btn-overlay{
+    position: absolute;
+    inset: 0;
+    background: #f29aa0; /* merah soft seperti gambar */
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    border-radius: 30px;
+}
+
+/* Saat disabled */
+#btnKonfirmasi.disabled .btn-overlay{
+    opacity: 1;
+}
+
+/* Teks asli */
+#btnKonfirmasi.disabled .btn-text{
+    visibility: hidden;
+}
+
+</style>

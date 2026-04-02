@@ -1,0 +1,20 @@
+@l!x0
+Toko      : RESTO                       
+Alamat    : Jl. cot iju bale setuy matam
+No. Telp  : +62 853-5802-60             
+
+No. Order : 17
+Tanggal   : 05-12-2024
+Kasir     : 
+========================================
+Menu                 Harga Qty  Subtotal
+========================================
+MASI GORENG TERI G  17,000   1    17,000
+
+                   Sub Total :    17,000
+                      Diskon :         0
+                       TOTAL :    17,000
+----------------------------------------
+Terima Kasih atas kunjungan Anda
+
+

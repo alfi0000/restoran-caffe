@@ -1,0 +1,20 @@
+@l!x0
+Toko      : RESTO                       
+Alamat    : Jl. cot iju bale setuy matam
+No. Telp  : +62 853-5802-60             
+
+No. Order : 19
+Tanggal   : 01-01-2025
+Kasir     : admin
+========================================
+Menu                 Harga Qty  Subtotal
+========================================
+PANCAKE COKELAT     15,000   1    15,000
+
+                   Sub Total :    15,000
+                      Diskon :         0
+                       TOTAL :    15,000
+----------------------------------------
+Terima Kasih atas kunjungan Anda
+
+

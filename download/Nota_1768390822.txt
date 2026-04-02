@@ -1,0 +1,19 @@
+@l!x0
+Toko      : RESTO                       
+Alamat    : Jl. cot iju bale setuy matam
+No. Telp  : +62 853-5802-60             
+
+No. Order : 5
+Tanggal   : 23-03-2019
+Kasir     : admin
+========================================
+Menu                 Harga Qty  Subtotal
+========================================
+
+                   Sub Total :    95,000
+                      Diskon :         0
+                       TOTAL :    95,000
+----------------------------------------
+Terima Kasih atas kunjungan Anda
+
+

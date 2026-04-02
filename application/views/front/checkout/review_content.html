@@ -1,0 +1,185 @@
+<div class="woocommerce">
+  <form id="form-bayar" class="checkout woocommerce-checkout">
+    <div class="col2-set" id="customer_details">
+      <div class="col-1">
+        <div class="woocommerce-billing-fields">
+          <h3>Detail Pemesan</h3>
+
+          <p class="form-row form-row-first">
+            <label>Nama Anda</label>
+            <input type="text" class="input-text" name="resto_order[nama]" placeholder="Input Nama Anda" autocomplete="off" required autofocus />
+          </p>
+
+          <p class="form-row form-row-last">
+            <label>No. Meja</label>
+            <select class="input-text" id="meja_id" name="resto_order[meja_id]" required>
+              <option value="">- Pilih No. Meja -</option>
+
+              {resto_meja}
+              <option value="{meja_value}" {meja_disabled} {meja_selected}>{meja_label}</option>
+              {/resto_meja}
+            </select>
+          </p>
+        </div>
+      </div>
+
+      <div class="col-2">
+        <div class="woocommerce-shipping-fields">
+          <h3>Informasi Tambahan</h3>
+          <p class="form-row notes">
+            <label>Catatan</label>
+            <textarea name="resto_order[catatan]" class="input-text" placeholder="Tuliskan Catatan untuk Order Anda" rows="4"></textarea>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h3 id="order_review_heading">Order Anda</h3>
+
+    <div id="order_review" class="woocommerce-checkout-review-order">
+      <table class="shop_table woocommerce-checkout-review-order-table">
+        <thead>
+          <tr>
+            <th>Menu</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {cart_content}
+          <tr>
+            <td>{menu_nama} × {qty}</td>
+            <td>Rp. {subtotal}</td>
+          </tr>
+          {/cart_content}
+        </tbody>
+
+        <tfoot>
+          <input type="hidden" name="resto_order[total_waktu]" value="{total_waktu}" />
+          <input type="hidden" name="resto_order[total_qty]" value="{total_qty}" />
+          <input type="hidden" name="resto_order[total]" value="{cart_total}" />
+
+          <tr>
+            <th>Total Qty</th>
+            <td>{total_qty}</td>
+          </tr>
+          <tr>
+            <th>Total Waktu</th>
+            <td><span id="totalWaktu"></span></td>
+          </tr>
+          <tr>
+            <th>Total Bayar</th>
+            <td><strong>Rp. {cart_total_format}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="form-row place-order">
+        <button type="submit" id="btn_submit" class="button alt" disabled>Konfirmasi Order</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  $(document).ready(function () {
+    // tombol disable dulu
+    $("#btn_submit").prop("disabled", true);
+
+    // ================= AUTO SELECT MEJA =================
+
+    function getParameterByName(name) {
+      let url = window.location.href;
+      name = name.replace(/[\[\]]/g, "\\$&");
+      let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
+      let results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return "";
+      return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    var mejaURL = getParameterByName("meja");
+    var mejaStorage = localStorage.getItem("meja_id");
+
+    if (mejaURL) {
+      localStorage.setItem("meja_id", mejaURL);
+      mejaStorage = mejaURL;
+    }
+
+    setTimeout(function () {
+      if (mejaStorage) {
+        var optionMeja = $("#meja_id option[value='" + mejaStorage + "']");
+
+        if (optionMeja.length) {
+          optionMeja.prop("disabled", false);
+          optionMeja.prop("selected", true);
+
+          $("#meja_id").val(mejaStorage).trigger("change");
+
+          $("#btn_submit").prop("disabled", false);
+        } else {
+          localStorage.removeItem("meja_id");
+        }
+      }
+    }, 300);
+
+    // aktifkan tombol jika meja dipilih manual
+    $("#meja_id").on("change", function () {
+      if ($(this).val() !== "") {
+        $("#btn_submit").prop("disabled", false);
+      } else {
+        $("#btn_submit").prop("disabled", true);
+      }
+    });
+
+    // submit order
+    $("#form-bayar").on("submit", function (e) {
+      e.preventDefault();
+
+      $("#btn_submit").prop("disabled", true).text("Memproses...");
+
+      $.ajax({
+        url: "{base}/checkout/konfirmasi",
+        type: "POST",
+        data: $(this).serialize(),
+        dataType: "json",
+      })
+        .done(function (res) {
+          if (res.status === false) {
+            Swal.fire("Gagal", res.message, "error");
+            $("#btn_submit").prop("disabled", false).text("Konfirmasi Order");
+            return;
+          }
+
+          location.href = "{base}/checkout/selesai/" + res.order_id;
+        })
+        .fail(function () {
+          Swal.fire("Error", "Terjadi kesalahan server", "error");
+          $("#btn_submit").prop("disabled", false).text("Konfirmasi Order");
+        });
+    });
+  });
+
+  // waktu realtime
+  function tampilkanWaktu() {
+    const d = new Date();
+    const jam = d.getHours().toString().padStart(2, "0");
+    const menit = d.getMinutes().toString().padStart(2, "0");
+    const tanggal = d.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+    document.getElementById("totalWaktu").innerHTML = `${tanggal} - ${jam}:${menit}`;
+  }
+
+  tampilkanWaktu();
+  setInterval(tampilkanWaktu, 60000);
+</script>
+
+<style>
+  select option:disabled {
+    color: #999;
+    background: #f2f2f2;
+  }
+</style>

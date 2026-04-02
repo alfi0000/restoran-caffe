@@ -1,0 +1,20 @@
+@l!x0
+Toko      : RESTO                       
+Alamat    : Jl. cot iju bale setuy matam
+No. Telp  : +62 853-5802-60             
+
+No. Order : 12
+Tanggal   : 06-10-2024
+Kasir     : kasir
+========================================
+Menu                 Harga Qty  Subtotal
+========================================
+ES KOPI CAPPUCINO   10,000   1    10,000
+
+                   Sub Total :    10,000
+                      Diskon :         0
+                       TOTAL :    10,000
+----------------------------------------
+Terima Kasih atas kunjungan Anda
+
+
